@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Maksab Admin (UAT Debug)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "args": [
+        "--dart-define=BASE_URL=https://uatapi.maksab.om/"
+      ]
+    },
+    {
+      "name": "Maksab Admin (UAT Release)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "args": [
+        "--dart-define=BASE_URL=https://uatapi.maksab.om/"
+      ]
+    }
+  ]
+}
