@@ -20,8 +20,8 @@ class OrderDetailHeader extends StatelessWidget {
   final OrderModel order;
   final VoidCallback? onBack;
 
-  void _copyOrderId(BuildContext context) {
-    Clipboard.setData(ClipboardData(text: order.id.toString()));
+  void _copyToClipboard(BuildContext context, String value) {
+    Clipboard.setData(ClipboardData(text: value));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('copied'.tr())),
     );
@@ -105,9 +105,40 @@ class OrderDetailHeader extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      if (order.shopNumber != null) ...[
+                        const SizedBox(height: 4),
+                        GestureDetector(
+                          onTap: () => _copyToClipboard(
+                            context,
+                            order.shopNumber!,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${'shop_number'.tr()}: ${order.shopNumber}',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.copy_outlined,
+                                size: 13,
+                                color: Colors.white.withValues(alpha: 0.65),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 6),
                       GestureDetector(
-                        onTap: () => _copyOrderId(context),
+                        onTap: () => _copyToClipboard(
+                          context,
+                          order.id.toString(),
+                        ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -623,6 +654,157 @@ class _OrderItemTile extends StatelessWidget {
   }
 }
 
+class OrderDeliveryManSection extends StatelessWidget {
+  const OrderDeliveryManSection({super.key, required this.order});
+
+  final OrderModel order;
+
+  bool get _showPendingMessage =>
+      order.status == 'new' || order.status == 'accepted';
+
+  void _copyPhone(BuildContext context, String phone) {
+    Clipboard.setData(ClipboardData(text: phone));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('copied'.tr())),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (order.isPickup) return const SizedBox.shrink();
+
+    final deliveryMan = order.deliveryMan;
+
+    return _SectionCard(
+      title: 'delivery_man'.tr(),
+      child: deliveryMan != null
+          ? Column(
+              children: [
+                Row(
+                  children: [
+                    _DeliveryAvatar(imageUrl: deliveryMan.image),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        deliveryMan.name,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (deliveryMan.phone != null &&
+                    deliveryMan.phone!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  _InfoTile(
+                    icon: Icons.phone_outlined,
+                    label: 'phone'.tr(),
+                    value: deliveryMan.phone!,
+                    onTap: () => _copyPhone(context, deliveryMan.phone!),
+                    trailing: const Icon(Icons.copy_outlined, size: 16),
+                  ),
+                ],
+                if (deliveryMan.email != null &&
+                    deliveryMan.email!.isNotEmpty)
+                  _InfoTile(
+                    icon: Icons.email_outlined,
+                    label: 'email'.tr(),
+                    value: deliveryMan.email!,
+                  ),
+              ],
+            )
+          : Text(
+              _showPendingMessage
+                  ? 'delivery_man_pending'.tr()
+                  : 'delivery_man_not_assigned'.tr(),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+            ),
+    );
+  }
+}
+
+class _DeliveryAvatar extends StatelessWidget {
+  const _DeliveryAvatar({this.imageUrl});
+
+  final String? imageUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = MediaUrl.resolve(imageUrl);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: url != null
+          ? CachedNetworkImage(
+              imageUrl: url,
+              width: 56,
+              height: 56,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => _placeholder(),
+              errorWidget: (_, __, ___) => _placeholder(),
+            )
+          : _placeholder(),
+    );
+  }
+
+  Widget _placeholder() {
+    return Container(
+      width: 56,
+      height: 56,
+      color: AppColors.surfaceVariant,
+      child: const Icon(
+        Icons.delivery_dining_outlined,
+        color: AppColors.textHint,
+      ),
+    );
+  }
+}
+
+class OrderShopSection extends StatelessWidget {
+  const OrderShopSection({super.key, required this.order});
+
+  final OrderModel order;
+
+  void _copyPhone(BuildContext context, String phone) {
+    Clipboard.setData(ClipboardData(text: phone));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('copied'.tr())),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (order.shopName == null && order.shopNumber == null) {
+      return const SizedBox.shrink();
+    }
+
+    return _SectionCard(
+      title: 'shop_info'.tr(),
+      child: Column(
+        children: [
+          if (order.shopName != null)
+            _InfoTile(
+              icon: Icons.store_outlined,
+              label: 'shop'.tr(),
+              value: order.shopName!,
+            ),
+          if (order.shopNumber != null)
+            _InfoTile(
+              icon: Icons.phone_outlined,
+              label: 'shop_number'.tr(),
+              value: order.shopNumber!,
+              onTap: () => _copyPhone(context, order.shopNumber!),
+              trailing: const Icon(Icons.copy_outlined, size: 16),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class OrderInfoSection extends StatelessWidget {
   const OrderInfoSection({super.key, required this.order});
 
@@ -671,13 +853,6 @@ class OrderInfoSection extends StatelessWidget {
                 order.deliveryDate,
                 order.deliveryTime,
               ),
-            ),
-          if (order.deliveryMan != null)
-            _InfoTile(
-              icon: Icons.delivery_dining_outlined,
-              label: 'delivery_man'.tr(),
-              value: order.deliveryMan!.name,
-              subtitle: order.deliveryMan!.phone,
             ),
           if (order.otp != null && order.otp!.isNotEmpty)
             _InfoTile(

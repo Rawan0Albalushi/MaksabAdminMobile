@@ -61,16 +61,26 @@ class OrdersNotifier extends StateNotifier<OrdersState> {
   OrdersNotifier(this._repo) : super(const OrdersState());
 
   final OrdersRepository _repo;
+  int _requestId = 0;
 
   Future<void> load({bool refresh = false}) async {
-    if (state.loading) return;
-    state = state.copyWith(loading: true, error: null);
+    final requestId = ++_requestId;
+    if (refresh) {
+      state = state.copyWith(error: null);
+    } else {
+      state = state.copyWith(loading: true, error: null);
+    }
+    await _reload(requestId: requestId);
+  }
+
+  Future<void> _reload({required int requestId}) async {
     try {
       final result = await _repo.fetchOrders(
         page: 1,
         status: state.statusFilter,
         search: state.search,
       );
+      if (requestId != _requestId) return;
       state = state.copyWith(
         orders: result.orders,
         statistic: result.statistic,
@@ -80,6 +90,7 @@ class OrdersNotifier extends StateNotifier<OrdersState> {
         loading: false,
       );
     } catch (e) {
+      if (requestId != _requestId) return;
       state = state.copyWith(loading: false, error: e.toString());
     }
   }
@@ -105,13 +116,29 @@ class OrdersNotifier extends StateNotifier<OrdersState> {
   }
 
   Future<void> setStatusFilter(String status) async {
-    state = state.copyWith(statusFilter: status);
-    await load(refresh: true);
+    if (state.statusFilter == status) return;
+    final requestId = ++_requestId;
+    state = state.copyWith(
+      statusFilter: status,
+      orders: const [],
+      loading: true,
+      error: null,
+      currentPage: 1,
+    );
+    await _reload(requestId: requestId);
   }
 
   Future<void> setSearch(String query) async {
-    state = state.copyWith(search: query);
-    await load(refresh: true);
+    if (state.search == query) return;
+    final requestId = ++_requestId;
+    state = state.copyWith(
+      search: query,
+      orders: const [],
+      loading: true,
+      error: null,
+      currentPage: 1,
+    );
+    await _reload(requestId: requestId);
   }
 }
 

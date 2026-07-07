@@ -38,19 +38,15 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     return _nextStatuses[order.status] ?? <String>[];
   }
 
-  Future<bool> _confirmStatusChange(
-    String currentStatus,
-    String targetStatus,
-  ) {
+  Future<bool> _confirmStatusChange(String targetStatus) {
     return StatusConfirmDialog.show(
       context,
-      currentStatus: currentStatus,
       targetStatus: targetStatus,
     );
   }
 
   Future<void> _updateStatus(OrderModel order, String status) async {
-    if (!await _confirmStatusChange(order.status, status) || !mounted) return;
+    if (!await _confirmStatusChange(status) || !mounted) return;
 
     setState(() => _updatingStatus = status);
     try {
@@ -125,6 +121,12 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                       const SizedBox(height: 12),
                       OrderItemsSection(items: order.items),
                       if (order.items.isNotEmpty) const SizedBox(height: 12),
+                      OrderShopSection(order: order),
+                      if (!order.isPickup) ...[
+                        const SizedBox(height: 12),
+                        OrderDeliveryManSection(order: order),
+                      ],
+                      const SizedBox(height: 12),
                       OrderInfoSection(order: order),
                       if (order.note != null && order.note!.isNotEmpty) ...[
                         const SizedBox(height: 12),

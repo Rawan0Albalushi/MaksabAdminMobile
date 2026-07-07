@@ -54,18 +54,31 @@ class OrderLineItem {
 }
 
 class OrderDeliveryPerson {
-  const OrderDeliveryPerson({required this.name, this.phone});
+  const OrderDeliveryPerson({
+    required this.name,
+    this.phone,
+    this.email,
+    this.image,
+  });
 
   final String name;
   final String? phone;
+  final String? email;
+  final String? image;
 
   factory OrderDeliveryPerson.fromJson(Map<String, dynamic> json) {
     final first = json['firstname']?.toString() ?? '';
     final last = json['lastname']?.toString() ?? '';
-    final name = '$first $last'.trim();
+    var name = '$first $last'.trim();
+    if (name.isEmpty) {
+      name = json['name']?.toString().trim() ?? '';
+    }
+
     return OrderDeliveryPerson(
       name: name.isEmpty ? '—' : name,
       phone: json['phone']?.toString(),
+      email: json['email']?.toString(),
+      image: json['img']?.toString(),
     );
   }
 }

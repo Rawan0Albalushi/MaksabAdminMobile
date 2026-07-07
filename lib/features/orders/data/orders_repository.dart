@@ -82,7 +82,53 @@ class OrdersRepository {
       throw Exception(response.message ?? 'Failed to load order');
     }
 
-    return OrderModel.fromJson(response.data!);
+    var order = OrderModel.fromJson(response.data!);
+    if (order.shopPhone == null) {
+      final phone = await _fetchShopPhone(
+        shopId: order.shopId,
+        shopUuid: order.shopUuid,
+      );
+      if (phone != null) {
+        order = order.copyWith(shopPhone: phone);
+      }
+    }
+
+    return order;
+  }
+
+  Future<String?> _fetchShopPhone({
+    int? shopId,
+    String? shopUuid,
+  }) async {
+    final shopKey = shopUuid ?? shopId?.toString();
+    if (shopKey == null || shopKey.isEmpty) return null;
+
+    try {
+      final json = await _dio.get<Map<String, dynamic>>(
+        ApiEndpoints.adminShop(shopKey),
+      );
+
+      final response = ApiResponse<Map<String, dynamic>>.fromJson(
+        json.data ?? {},
+        (raw) => raw as Map<String, dynamic>,
+      );
+
+      if (!response.status || response.data == null) return null;
+
+      final shop = response.data!;
+      final phone = shop['phone']?.toString().trim();
+      if (phone != null && phone.isNotEmpty) return phone;
+
+      final seller = shop['seller'];
+      if (seller is Map) {
+        final sellerPhone = seller['phone']?.toString().trim();
+        if (sellerPhone != null && sellerPhone.isNotEmpty) return sellerPhone;
+      }
+    } catch (_) {
+      return null;
+    }
+
+    return null;
   }
 
   Future<void> updateStatus(int id, String status) async {

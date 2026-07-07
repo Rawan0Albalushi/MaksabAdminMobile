@@ -3,29 +3,16 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../../../core/widgets/shared_widgets.dart';
 
 abstract class StatusConfirmDialog {
   StatusConfirmDialog._();
 
-  static IconData _statusIcon(String status) => switch (status) {
-        'accepted' => Icons.check_circle_outline,
-        'cooking' => Icons.restaurant_outlined,
-        'ready' => Icons.shopping_bag_outlined,
-        'on_a_way' => Icons.delivery_dining_outlined,
-        'delivered' => Icons.done_all_rounded,
-        'canceled' => Icons.cancel_outlined,
-        _ => Icons.sync_alt_rounded,
-      };
-
   static Future<bool> show(
     BuildContext context, {
-    required String currentStatus,
     required String targetStatus,
   }) async {
     final isCancel = targetStatus == 'canceled';
     final targetLabel = Formatters.orderStatusLabel(targetStatus);
-    final actionColor = isCancel ? AppColors.error : AppColors.primary;
 
     final result = await showDialog<bool>(
       context: context,
@@ -43,22 +30,6 @@ abstract class StatusConfirmDialog {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: actionColor.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isCancel
-                      ? Icons.warning_amber_rounded
-                      : _statusIcon(targetStatus),
-                  color: actionColor,
-                  size: 32,
-                ),
-              ),
-              const SizedBox(height: 20),
               Text(
                 isCancel
                     ? 'cancel_order_confirm'.tr()
@@ -71,65 +42,6 @@ abstract class StatusConfirmDialog {
                       height: 1.3,
                     ),
                 textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                isCancel
-                    ? 'cancel_order_confirm_desc'.tr()
-                    : 'status_update_confirm_desc'.tr(
-                        namedArgs: {'status': targetLabel},
-                      ),
-                style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                      height: 1.45,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: Text(
-                  'status_change_preview'.tr(),
-                  style: Theme.of(ctx).textTheme.labelMedium?.copyWith(
-                        color: AppColors.textHint,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceVariant,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Center(
-                        child: OrderStatusChip(status: currentStatus),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Icon(
-                        context.locale.languageCode == 'ar'
-                            ? Icons.arrow_back_rounded
-                            : Icons.arrow_forward_rounded,
-                        size: 18,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    Expanded(
-                      child: Center(
-                        child: OrderStatusChip(status: targetStatus),
-                      ),
-                    ),
-                  ],
-                ),
               ),
               const SizedBox(height: 24),
               Row(
@@ -160,14 +72,14 @@ abstract class StatusConfirmDialog {
                       child: FilledButton(
                         onPressed: () => Navigator.pop(ctx, true),
                         style: FilledButton.styleFrom(
-                          backgroundColor: actionColor,
+                          backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         child: Text(
-                          isCancel ? 'cancel_order'.tr() : 'confirm'.tr(),
+                          'yes'.tr(),
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                       ),

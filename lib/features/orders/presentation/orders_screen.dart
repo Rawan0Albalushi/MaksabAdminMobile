@@ -41,20 +41,48 @@ class OrderCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
-              if (order.shopName != null)
-                Row(
+              if (order.shopName != null || order.zoneName != null)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.store_outlined,
-                        size: 16, color: AppColors.textSecondary),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        order.shopName!,
-                        style: const TextStyle(color: AppColors.textSecondary),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                    if (order.shopName != null)
+                      Row(
+                        children: [
+                          const Icon(Icons.store_outlined,
+                              size: 16, color: AppColors.textSecondary),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              order.shopName!,
+                              style: const TextStyle(
+                                  color: AppColors.textSecondary),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+                    if (order.zoneName != null) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.place_outlined,
+                              size: 16, color: AppColors.textHint),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              order.zoneName!,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: AppColors.textHint),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               if (order.username != null) ...[
@@ -196,9 +224,18 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                                 ? 'all'.tr()
                                 : Formatters.orderStatusLabel(status)),
                             selected: selected,
-                            onSelected: (_) => ref
-                                .read(ordersProvider.notifier)
-                                .setStatusFilter(status),
+                            onSelected: (_) {
+                              if (_scrollController.hasClients) {
+                                _scrollController.animateTo(
+                                  0,
+                                  duration: const Duration(milliseconds: 250),
+                                  curve: Curves.easeOut,
+                                );
+                              }
+                              ref
+                                  .read(ordersProvider.notifier)
+                                  .setStatusFilter(status);
+                            },
                             selectedColor:
                                 AppColors.primary.withValues(alpha: 0.15),
                             checkmarkColor: AppColors.primary,
@@ -210,7 +247,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                 ),
               ),
             ),
-            if (state.loading && state.orders.isEmpty)
+            if (state.loading)
               const SliverFillRemaining(
                 child: Center(child: CircularProgressIndicator()),
               )

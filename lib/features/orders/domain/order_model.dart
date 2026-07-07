@@ -12,7 +12,11 @@ class OrderModel {
     this.note,
     this.createdAt,
     this.shopName,
+    this.zoneName,
     this.shopLogo,
+    this.shopPhone,
+    this.shopId,
+    this.shopUuid,
     this.orderDetailsCount,
     this.items = const [],
     this.deliveryFee,
@@ -36,7 +40,11 @@ class OrderModel {
   final String? note;
   final String? createdAt;
   final String? shopName;
+  final String? zoneName;
   final String? shopLogo;
+  final String? shopPhone;
+  final int? shopId;
+  final String? shopUuid;
   final int? orderDetailsCount;
   final List<OrderLineItem> items;
   final num? deliveryFee;
@@ -50,6 +58,13 @@ class OrderModel {
   final String? otp;
 
   bool get isPickup => deliveryType == 'pickup';
+
+  String? get shopNumber {
+    final phone = shopPhone?.trim();
+    if (phone != null && phone.isNotEmpty) return phone;
+    if (shopId != null) return shopId.toString();
+    return null;
+  }
 
   String get formattedAddress {
     if (address == null) return '—';
@@ -78,9 +93,44 @@ class OrderModel {
     );
   }
 
+  OrderModel copyWith({
+    String? shopPhone,
+    String? shopName,
+    String? shopLogo,
+  }) {
+    return OrderModel(
+      id: id,
+      status: status,
+      totalPrice: totalPrice,
+      username: username,
+      phone: phone,
+      address: address,
+      deliveryType: deliveryType,
+      note: note,
+      createdAt: createdAt,
+      shopName: shopName ?? this.shopName,
+      zoneName: zoneName,
+      shopLogo: shopLogo ?? this.shopLogo,
+      shopPhone: shopPhone ?? this.shopPhone,
+      shopId: shopId,
+      shopUuid: shopUuid,
+      orderDetailsCount: orderDetailsCount,
+      items: items,
+      deliveryFee: deliveryFee,
+      tax: tax,
+      serviceFee: serviceFee,
+      couponPrice: couponPrice,
+      totalDiscount: totalDiscount,
+      deliveryDate: deliveryDate,
+      deliveryTime: deliveryTime,
+      deliveryMan: deliveryMan,
+      otp: otp,
+    );
+  }
+
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     final detailsRaw = json['details'];
-    final deliveryManRaw = json['deliveryman'];
+    final shop = _resolveShop(json);
 
     return OrderModel(
       id: json['id'] as int,
@@ -92,8 +142,12 @@ class OrderModel {
       deliveryType: json['delivery_type']?.toString(),
       note: json['note']?.toString(),
       createdAt: json['created_at']?.toString(),
-      shopName: _readShopName(json['shop']),
-      shopLogo: _readShopLogo(json['shop']),
+      shopName: _readShopName(shop),
+      zoneName: _readZoneName(json, shop),
+      shopLogo: _readShopLogo(shop),
+      shopPhone: _readShopPhone(shop),
+      shopId: _readShopId(json, shop),
+      shopUuid: _readShopUuid(shop),
       orderDetailsCount: json['order_details_count'] as int?,
       items: detailsRaw is List
           ? detailsRaw
@@ -108,13 +162,21 @@ class OrderModel {
       totalDiscount: json['total_discount'] as num?,
       deliveryDate: json['delivery_date']?.toString(),
       deliveryTime: json['delivery_time']?.toString(),
-      deliveryMan: deliveryManRaw is Map
-          ? OrderDeliveryPerson.fromJson(
-              Map<String, dynamic>.from(deliveryManRaw),
-            )
-          : null,
+      deliveryMan: _readDeliveryMan(json),
       otp: json['otp']?.toString(),
     );
+  }
+
+  static OrderDeliveryPerson? _readDeliveryMan(Map<String, dynamic> json) {
+    for (final key in ['deliveryman', 'delivery_man', 'deliveryMan']) {
+      final raw = json[key];
+      if (raw is Map) {
+        return OrderDeliveryPerson.fromJson(
+          Map<String, dynamic>.from(raw),
+        );
+      }
+    }
+    return null;
   }
 
   static String? _readCustomerName(Map<String, dynamic> json) {
@@ -145,19 +207,76 @@ class OrderModel {
     return null;
   }
 
-  static String? _readShopName(dynamic shop) {
-    if (shop is! Map) return null;
-    final translation = shop['translation'];
+  static dynamic _resolveShop(Map<String, dynamic> json) {
+    for (final key in ['shop', 'restaurant', 'seller']) {
+      final value = json[key];
+      if (value is Map) return value;
+    }
+    return null;
+  }
+
+  static String? _readShopName(dynamic shop) => _readLocalizedTitle(shop);
+
+  static String? _readZoneName(Map<String, dynamic> json, dynamic shop) {
+    for (final zone in [
+      json['zone'],
+      shop is Map ? shop['zone'] : null,
+    ]) {
+      final name = _readLocalizedTitle(zone);
+      if (name != null) return name;
+    }
+    return null;
+  }
+
+  static String? _readLocalizedTitle(dynamic value) {
+    if (value is! Map) return null;
+    final map = Map<String, dynamic>.from(value);
+    final translation = map['translation'];
     if (translation is Map && translation['title'] != null) {
       return translation['title'].toString();
     }
-    if (shop['title'] != null) return shop['title'].toString();
+    if (map['title'] != null) return map['title'].toString();
+    if (map['name'] != null) return map['name'].toString();
     return null;
   }
 
   static String? _readShopLogo(dynamic shop) {
     if (shop is! Map) return null;
     return shop['logo_img']?.toString();
+  }
+
+  static String? _readShopPhone(dynamic shop) {
+    if (shop is! Map) return null;
+
+    final phone = shop['phone']?.toString().trim();
+    if (phone != null && phone.isNotEmpty) return phone;
+
+    final seller = shop['seller'];
+    if (seller is Map) {
+      final sellerPhone = seller['phone']?.toString().trim();
+      if (sellerPhone != null && sellerPhone.isNotEmpty) return sellerPhone;
+    }
+
+    return null;
+  }
+
+  static int? _readShopId(Map<String, dynamic> json, dynamic shop) {
+    for (final value in [
+      json['shop_id'],
+      shop is Map ? shop['id'] : null,
+    ]) {
+      if (value is int) return value;
+      final parsed = int.tryParse(value?.toString() ?? '');
+      if (parsed != null) return parsed;
+    }
+    return null;
+  }
+
+  static String? _readShopUuid(dynamic shop) {
+    if (shop is! Map) return null;
+    final uuid = shop['uuid']?.toString().trim();
+    if (uuid != null && uuid.isNotEmpty) return uuid;
+    return null;
   }
 }
 
