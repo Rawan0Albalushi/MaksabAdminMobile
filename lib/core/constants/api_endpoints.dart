@@ -9,6 +9,13 @@ abstract class ApiEndpoints {
   static String adminOrder(int id) => 'dashboard/admin/orders/$id';
   static String adminOrderStatus(int id) => 'dashboard/admin/order/$id/status';
   static String adminShop(String id) => 'dashboard/admin/shops/$id';
+  static const adminShopsPaginate = 'dashboard/admin/shops/paginate';
+  static String adminShopVerify(String uuid) =>
+      'dashboard/admin/shops/$uuid/verify';
+  static String adminShopStatusChange(String uuid) =>
+      'dashboard/admin/shops/$uuid/status/change';
+  static String adminShopWorkingStatus(String uuid) =>
+      'dashboard/admin/shops/working/status/$uuid';
 
   static const adminZones = 'dashboard/admin/zones';
 

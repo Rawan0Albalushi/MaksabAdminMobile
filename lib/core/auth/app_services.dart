@@ -89,6 +89,22 @@ abstract class AppServices {
     requiredPermissions: ['admin.orders.view'],
   );
 
+  static const shops = AppService(
+    id: 'shops',
+    route: '/shops',
+    titleKey: 'shops',
+    subtitleKey: 'home_shops_desc',
+    icon: Icons.store_outlined,
+    selectedIcon: Icons.store_rounded,
+    style: ServiceGradients.shops,
+    allowedRoles: [
+      AppConfig.roleAdmin,
+      AppConfig.roleZoneAdmin,
+      AppConfig.roleZoneManager,
+    ],
+    requiredPermissions: ['admin.shops.manage'],
+  );
+
   static const orders = AppService(
     id: 'orders',
     route: '/orders',
@@ -160,6 +176,7 @@ abstract class AppServices {
 
   static const List<AppService> all = [
     dashboard,
+    shops,
     orders,
     refunds,
     chat,

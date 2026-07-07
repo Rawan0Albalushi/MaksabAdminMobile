@@ -14,6 +14,8 @@ import '../features/orders/presentation/orders_screen.dart';
 import '../features/refunds/presentation/refund_detail_screen.dart';
 import '../features/refunds/presentation/refunds_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
+import '../features/shops/presentation/shop_detail_screen.dart';
+import '../features/shops/presentation/shops_screen.dart';
 import '../core/widgets/app_shell.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -48,6 +50,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/shops/:uuid',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final uuid = state.pathParameters['uuid']!;
+          return ShopDetailScreen(shopUuid: uuid);
+        },
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
@@ -125,6 +135,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/settings',
                 builder: (context, state) => const SettingsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/shops',
+                builder: (context, state) => const ShopsScreen(),
               ),
             ],
           ),

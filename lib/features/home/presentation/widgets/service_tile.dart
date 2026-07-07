@@ -189,6 +189,15 @@ abstract class ServiceGradients {
     accent: Color(0xFF1976D2),
   );
 
+  static const shops = ServiceStyle(
+    gradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [Color(0xFFE8F5E9), Color(0xFFD7EED9)],
+    ),
+    accent: Color(0xFF2E7D32),
+  );
+
   static const refunds = ServiceStyle(
     gradient: LinearGradient(
       begin: Alignment.topLeft,

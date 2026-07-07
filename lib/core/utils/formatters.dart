@@ -76,6 +76,26 @@ abstract class Formatters {
     };
   }
 
+  static String shopStatusLabel(String? status) {
+    if (status == null) return '—';
+    return switch (status) {
+      'new' => 'shop_status_new'.tr(),
+      'approved' => 'shop_status_approved'.tr(),
+      'rejected' => 'shop_status_rejected'.tr(),
+      'edited' => 'shop_status_edited'.tr(),
+      'inactive' => 'shop_status_inactive'.tr(),
+      _ => status,
+    };
+  }
+
+  static String shopFilterLabel(String filter) {
+    return switch (filter) {
+      'all' => 'all'.tr(),
+      'deleted' => 'shop_deleted'.tr(),
+      _ => shopStatusLabel(filter),
+    };
+  }
+
   static String scheduledDelivery(String? date, String? time) {
     if (date == null || date.isEmpty) return '—';
     if (time == null || time.isEmpty) return date;
