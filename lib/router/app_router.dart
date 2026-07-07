@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/providers/auth_provider.dart';
+import '../core/auth/app_services.dart';
 import '../features/chat/presentation/chat_detail_screen.dart';
 import '../features/chat/presentation/chat_list_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
@@ -18,18 +19,29 @@ import '../core/widgets/app_shell.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final auth = ref.watch(authProvider);
+  final refresh = ValueNotifier<int>(0);
+  ref.listen(authProvider, (_, __) => refresh.value++);
+  ref.onDispose(refresh.dispose);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: '/home',
+    initialLocation: '/login',
+    refreshListenable: refresh,
     redirect: (context, state) {
+      final auth = ref.read(authProvider);
       final loggingIn = state.matchedLocation == '/login';
-      final bootstrapping = auth.loading && auth.user == null;
+      final bootstrapping = auth.initializing;
 
       if (bootstrapping) return null;
       if (!auth.isAuthenticated && !loggingIn) return '/login';
       if (auth.isAuthenticated && loggingIn) return '/home';
+
+      final user = auth.user;
+      if (user != null &&
+          !AppServices.canAccessRoute(user, state.matchedLocation)) {
+        return '/home';
+      }
+
       return null;
     },
     routes: [

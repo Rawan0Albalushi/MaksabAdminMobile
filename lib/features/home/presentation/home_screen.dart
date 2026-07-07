@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/auth/app_services.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/responsive.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
@@ -11,44 +12,6 @@ import 'widgets/service_tile.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  static List<ServiceTileData> get _services => [
-    ServiceTileData(
-      titleKey: 'dashboard',
-      subtitleKey: 'home_dashboard_desc',
-      icon: Icons.analytics_outlined,
-      style: ServiceGradients.dashboard,
-      route: '/dashboard',
-    ),
-    ServiceTileData(
-      titleKey: 'orders',
-      subtitleKey: 'home_orders_desc',
-      icon: Icons.receipt_long_outlined,
-      style: ServiceGradients.orders,
-      route: '/orders',
-    ),
-    ServiceTileData(
-      titleKey: 'refunds',
-      subtitleKey: 'home_refunds_desc',
-      icon: Icons.assignment_return_outlined,
-      style: ServiceGradients.refunds,
-      route: '/refunds',
-    ),
-    ServiceTileData(
-      titleKey: 'conversations',
-      subtitleKey: 'home_chat_desc',
-      icon: Icons.chat_bubble_outline_rounded,
-      style: ServiceGradients.chat,
-      route: '/chat',
-    ),
-    ServiceTileData(
-      titleKey: 'settings',
-      subtitleKey: 'home_settings_desc',
-      icon: Icons.settings_outlined,
-      style: ServiceGradients.settings,
-      route: '/settings',
-    ),
-  ];
-
   void _navigate(BuildContext context, String route) {
     context.go(route);
   }
@@ -56,6 +19,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider).user;
+    final services = user == null ? <AppService>[] : AppServices.homeTilesFor(user);
     final padding = Responsive.pagePadding(context);
     final columns = Responsive.isTablet(context) ? 3 : 2;
 
@@ -195,27 +159,40 @@ class HomeScreen extends ConsumerWidget {
           ),
           SliverPadding(
             padding: padding.copyWith(top: 0),
-            sliver: SliverGrid(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: columns,
-                mainAxisSpacing: 14,
-                crossAxisSpacing: 14,
-                childAspectRatio: columns >= 3 ? 1.05 : 0.88,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final service = _services[index];
-                  return ServiceTile(
-                    title: service.titleKey.tr(),
-                    subtitle: service.subtitleKey.tr(),
-                    icon: service.icon,
-                    style: service.style,
-                    onTap: () => _navigate(context, service.route),
-                  );
-                },
-                childCount: _services.length,
-              ),
-            ),
+            sliver: services.isEmpty
+                ? SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 32),
+                      child: Center(
+                        child: Text(
+                          'no_services'.tr(),
+                          style: const TextStyle(color: AppColors.textSecondary),
+                        ),
+                      ),
+                    ),
+                  )
+                : SliverGrid(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: columns,
+                      mainAxisSpacing: 14,
+                      crossAxisSpacing: 14,
+                      childAspectRatio: columns >= 3 ? 1.05 : 0.88,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final service = services[index];
+                        final tile = service.toTileData();
+                        return ServiceTile(
+                          title: tile.titleKey.tr(),
+                          subtitle: tile.subtitleKey.tr(),
+                          icon: tile.icon,
+                          style: tile.style,
+                          onTap: () => _navigate(context, tile.route),
+                        );
+                      },
+                      childCount: services.length,
+                    ),
+                  ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],

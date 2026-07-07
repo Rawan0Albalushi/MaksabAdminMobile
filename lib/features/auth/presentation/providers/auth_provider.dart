@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
@@ -42,14 +43,25 @@ class AuthRepository {
     );
 
     if (!parsed.status || parsed.data == null) {
+      throw Exception(parsed.message ?? 'login_failed');
+    }
+
+    final data = parsed.data!;
+    final token = AdminUser.accessTokenFromLoginData(data);
+    if (token == null || token.isEmpty) {
       throw Exception('login_failed');
     }
 
-    final token = parsed.data!['access_token']?.toString() ?? '';
-    final userJson = parsed.data!['user'] as Map<String, dynamic>;
-    final user = AdminUser.fromJson(userJson, token: token);
+    final profile = AdminUser.profileFromLoginData(data);
+    final user = AdminUser.fromJson(profile, token: token);
 
-    if (!user.isAdminPortal) {
+    if (!user.canAccessPortal) {
+      if (kDebugMode) {
+        debugPrint(
+          '[Auth] Portal denied for ${user.email} '
+          'roles=${user.roles} zones=${user.zoneIds}',
+        );
+      }
       throw Exception('access_denied');
     }
 
@@ -64,7 +76,7 @@ class AuthRepository {
     if (token == null || userJson == null) return null;
 
     final user = AdminUser.fromJson(userJson, token: token);
-    if (!user.isAdminPortal) {
+    if (!user.canAccessPortal) {
       await logout();
       return null;
     }
@@ -80,17 +92,30 @@ class AuthRepository {
 }
 
 class AuthState {
-  const AuthState({this.user, this.loading = false, this.error});
+  const AuthState({
+    this.user,
+    this.initializing = false,
+    this.loading = false,
+    this.error,
+  });
 
   final AdminUser? user;
+  final bool initializing;
   final bool loading;
   final String? error;
 
   bool get isAuthenticated => user != null;
 
-  AuthState copyWith({AdminUser? user, bool? loading, String? error}) {
+  AuthState copyWith({
+    AdminUser? user,
+    bool? initializing,
+    bool? loading,
+    String? error,
+    bool clearUser = false,
+  }) {
     return AuthState(
-      user: user ?? this.user,
+      user: clearUser ? null : (user ?? this.user),
+      initializing: initializing ?? this.initializing,
       loading: loading ?? this.loading,
       error: error,
     );
@@ -98,32 +123,32 @@ class AuthState {
 }
 
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier(this._repo) : super(const AuthState()) {
+  AuthNotifier(this._repo) : super(const AuthState(initializing: true)) {
     _bootstrap();
   }
 
   final AuthRepository _repo;
 
   Future<void> _bootstrap() async {
-    state = state.copyWith(loading: true);
+    state = state.copyWith(initializing: true);
     try {
       final user = await _repo.restoreSession();
-      state = AuthState(user: user, loading: false);
+      state = AuthState(user: user, initializing: false);
     } catch (_) {
-      state = const AuthState(loading: false);
+      state = const AuthState(initializing: false);
     }
   }
 
   Future<bool> login(String identifier, String password) async {
-    state = state.copyWith(loading: true, error: null);
+    state = state.copyWith(loading: true, error: null, clearUser: true);
     try {
       final user = await _repo.login(identifier: identifier, password: password);
       state = AuthState(user: user, loading: false);
       return true;
     } catch (e) {
-      state = state.copyWith(
+      state = AuthState(
         loading: false,
-        error: e.toString().replaceAll('Exception: ', ''),
+        error: _mapLoginError(e),
       );
       return false;
     }
@@ -132,6 +157,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> logout() async {
     await _repo.logout();
     state = const AuthState();
+  }
+
+  String _mapLoginError(Object error) {
+    if (error is DioException) {
+      final apiError = parseApiError(error);
+      final message = apiError.message.trim();
+      if (message.isNotEmpty &&
+          message != 'Network error' &&
+          message != 'Error') {
+        return message;
+      }
+    }
+
+    final raw = error.toString().replaceAll('Exception: ', '').trim();
+    if (raw == 'login_failed' ||
+        raw == 'access_denied' ||
+        raw.contains('incorrect') ||
+        raw.contains('password')) {
+      return raw == 'access_denied' ? 'access_denied' : 'login_failed';
+    }
+    return raw.isEmpty ? 'login_failed' : raw;
   }
 }
 

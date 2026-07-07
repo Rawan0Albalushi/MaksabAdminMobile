@@ -6,7 +6,7 @@
   "email_required": "البريد أو الهاتف مطلوب",
   "password_required": "كلمة المرور مطلوبة",
   "login_failed": "فشل تسجيل الدخول. تحقق من البيانات.",
-  "access_denied": "غير مصرح. يلزم حساب إداري.",
+  "access_denied": "غير مصرح. يلزم حساب مدير أو مدير زون.",
   "logout": "تسجيل الخروج",
   "dashboard": "الإحصائيات",
   "orders": "الطلبات",
@@ -149,5 +149,6 @@
   "refund_status_updated": "تم تحديث حالة الاسترداد",
   "refund_accept_confirm": "قبول هذا الاسترداد؟",
   "refund_accept_confirm_desc": "سيتم إضافة المبلغ لمحفظة العميل واستعادة المخزون.",
-  "view_order": "عرض الطلب"
+  "view_order": "عرض الطلب",
+  "no_services": "لا توجد خدمات متاحة لحسابك."
 }

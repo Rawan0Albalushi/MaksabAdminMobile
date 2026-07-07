@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/app_config.dart';
@@ -20,9 +21,19 @@ class ApiClient {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'app': AppConfig.apiAppHeader,
         },
       ),
     );
+
+    if (kDebugMode) {
+      _dio.interceptors.add(
+        LogInterceptor(
+          requestBody: true,
+          responseBody: true,
+        ),
+      );
+    }
 
     _dio.interceptors.add(
       InterceptorsWrapper(

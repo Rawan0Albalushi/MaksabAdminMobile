@@ -36,9 +36,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!ok && mounted) {
       final error = ref.read(authProvider).error ?? 'login_failed';
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.tr())),
+        SnackBar(content: Text(_loginErrorMessage(error))),
       );
     }
+  }
+
+  String _loginErrorMessage(String error) {
+    const translationKeys = {'login_failed', 'access_denied'};
+    if (translationKeys.contains(error)) return error.tr();
+    return error;
   }
 
   @override

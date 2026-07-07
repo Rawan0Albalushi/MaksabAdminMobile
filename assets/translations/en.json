@@ -6,7 +6,7 @@
   "email_required": "Email or phone is required",
   "password_required": "Password is required",
   "login_failed": "Login failed. Check your credentials.",
-  "access_denied": "Access denied. Admin account required.",
+  "access_denied": "Access denied. Admin or zone admin account required.",
   "logout": "Logout",
   "dashboard": "Statistics",
   "orders": "Orders",
@@ -149,5 +149,6 @@
   "refund_status_updated": "Refund status updated",
   "refund_accept_confirm": "Accept this refund?",
   "refund_accept_confirm_desc": "The customer wallet will be credited and stock will be restored.",
-  "view_order": "View order"
+  "view_order": "View order",
+  "no_services": "No services are available for your account."
 }
