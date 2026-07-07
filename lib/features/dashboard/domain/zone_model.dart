@@ -2,15 +2,20 @@ class ZoneModel {
   const ZoneModel({
     required this.id,
     required this.name,
+    this.managerUserIds = const [],
   });
 
   final int id;
   final String name;
+  final List<int> managerUserIds;
+
+  bool isManagedBy(int userId) => managerUserIds.contains(userId);
 
   factory ZoneModel.fromJson(Map<String, dynamic> json) {
     return ZoneModel(
       id: _parseId(json['id'] ?? json['zone_id']),
       name: _readName(json),
+      managerUserIds: _parseManagerUserIds(json),
     );
   }
 
@@ -50,5 +55,35 @@ class ZoneModel {
 
     final id = _parseId(json['id'] ?? json['zone_id']);
     return id > 0 ? '#$id' : '';
+  }
+
+  static List<int> _parseManagerUserIds(Map<String, dynamic> json) {
+    final ids = <int>{};
+
+    void add(dynamic value) {
+      final id = _parseId(value);
+      if (id > 0) ids.add(id);
+    }
+
+    for (final key in ['manager_id', 'user_id', 'admin_id']) {
+      add(json[key]);
+    }
+
+    for (final key in ['managers', 'manager', 'users', 'zone_managers', 'admins']) {
+      final value = json[key];
+      if (value is List) {
+        for (final item in value) {
+          if (item is Map) {
+            add(item['id'] ?? item['user_id']);
+          } else {
+            add(item);
+          }
+        }
+      } else if (value is Map) {
+        add(value['id'] ?? value['user_id']);
+      }
+    }
+
+    return ids.toList();
   }
 }

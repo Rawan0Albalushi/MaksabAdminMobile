@@ -18,6 +18,7 @@ abstract class ApiEndpoints {
       'dashboard/admin/shops/working/status/$uuid';
 
   static const adminZones = 'dashboard/admin/zones';
+  static const adminUserSelf = 'dashboard/admin/users/self';
 
   static const adminStatistics = 'dashboard/admin/statistics';
   static const adminOrdersOverview =

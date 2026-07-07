@@ -67,6 +67,32 @@ class AdminUser {
     return normalizedRoles.any(normalizedCandidates.contains);
   }
 
+  bool get shouldScopeZones => isZoneAdmin && !isFullAdmin;
+
+  AdminUser copyWith({
+    int? id,
+    String? firstname,
+    String? lastname,
+    String? email,
+    List<String>? roles,
+    List<String>? permissions,
+    List<int>? zoneIds,
+    String? img,
+    String? token,
+  }) {
+    return AdminUser(
+      id: id ?? this.id,
+      firstname: firstname ?? this.firstname,
+      lastname: lastname ?? this.lastname,
+      email: email ?? this.email,
+      roles: roles ?? this.roles,
+      permissions: permissions ?? this.permissions,
+      zoneIds: zoneIds ?? this.zoneIds,
+      img: img ?? this.img,
+      token: token ?? this.token,
+    );
+  }
+
   static String _normalizeRole(String role) => role.trim().toLowerCase();
 
   /// Builds a user profile map from the login `data` envelope.
@@ -91,6 +117,11 @@ class AdminUser {
       'delivery_zone_id',
       'invite',
       'invitations',
+      'invitation',
+      'zone_invite',
+      'zone_invites',
+      'admin_zones',
+      'user_zones',
     ];
 
     for (final key in sharedKeys) {
@@ -212,6 +243,10 @@ class AdminUser {
       'zoneIds',
       'managed_zones',
       'manage_zones',
+      'admin_zones',
+      'user_zones',
+      'assign_zones',
+      'zone_invites',
     ]) {
       final value = json[key];
       if (value is List) {
@@ -224,12 +259,28 @@ class AdminUser {
         }
       } else if (value is Map) {
         addId(value['id'] ?? value['zone_id']);
+        final nested = value['data'];
+        if (nested is List) {
+          for (final item in nested) {
+            if (item is Map) {
+              addId(item['id'] ?? item['zone_id']);
+            } else {
+              addId(item);
+            }
+          }
+        }
       } else {
         addId(value);
       }
     }
 
-    for (final key in ['invite', 'invitations']) {
+    for (final key in [
+      'invite',
+      'invitations',
+      'invitation',
+      'zone_invite',
+      'zone_invites',
+    ]) {
       final value = json[key];
       if (value is List) {
         for (final item in value) {

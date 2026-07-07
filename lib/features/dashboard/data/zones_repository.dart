@@ -5,6 +5,8 @@ import '../../../core/constants/api_endpoints.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_response.dart';
 import '../../../core/utils/paginate_response.dart';
+import '../../auth/presentation/providers/auth_provider.dart';
+import '../../auth/domain/admin_user.dart';
 import '../domain/zone_model.dart';
 
 final zonesRepositoryProvider = Provider<ZonesRepository>((ref) {
@@ -12,8 +14,30 @@ final zonesRepositoryProvider = Provider<ZonesRepository>((ref) {
 });
 
 final zonesListProvider = FutureProvider<List<ZoneModel>>((ref) async {
-  return ref.read(zonesRepositoryProvider).fetchZones();
+  final allZones = await ref.read(zonesRepositoryProvider).fetchZones();
+  final user = ref.watch(authProvider).user;
+
+  return zonesForUser(allZones, user);
 });
+
+List<ZoneModel> zonesForUser(List<ZoneModel> allZones, AdminUser? user) {
+  if (user == null || !user.shouldScopeZones) {
+    return allZones;
+  }
+
+  if (user.zoneIds.isNotEmpty) {
+    final allowed = user.zoneIds.toSet();
+    return allZones.where((zone) => allowed.contains(zone.id)).toList();
+  }
+
+  final managedZones =
+      allZones.where((zone) => zone.isManagedBy(user.id)).toList();
+  if (managedZones.isNotEmpty) {
+    return managedZones;
+  }
+
+  return const [];
+}
 
 class ZonesRepository {
   ZonesRepository(this._dio);
