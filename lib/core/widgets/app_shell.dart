@@ -50,7 +50,7 @@ class AppShell extends StatelessWidget {
           BottomNavItem(
             icon: Icons.chat_bubble_outline_rounded,
             selectedIcon: Icons.chat_bubble_rounded,
-            label: 'chat'.tr(),
+            label: 'conversations'.tr(),
           ),
           BottomNavItem(
             icon: Icons.settings_outlined,

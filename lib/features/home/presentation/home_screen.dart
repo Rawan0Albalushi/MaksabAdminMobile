@@ -34,7 +34,7 @@ class HomeScreen extends ConsumerWidget {
       route: '/refunds',
     ),
     ServiceTileData(
-      titleKey: 'chat',
+      titleKey: 'conversations',
       subtitleKey: 'home_chat_desc',
       icon: Icons.chat_bubble_outline_rounded,
       style: ServiceGradients.chat,
