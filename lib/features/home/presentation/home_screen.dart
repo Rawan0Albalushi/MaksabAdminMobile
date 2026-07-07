@@ -50,10 +50,6 @@ class HomeScreen extends ConsumerWidget {
   ];
 
   void _navigate(BuildContext context, String route) {
-    if (route == '/dashboard') {
-      context.push(route);
-      return;
-    }
     context.go(route);
   }
 

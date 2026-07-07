@@ -24,6 +24,7 @@ class OrdersRepository {
     String? search,
     DateTime? dateFrom,
     DateTime? dateTo,
+    int? zoneId,
   }) async {
     final params = <String, dynamic>{
       'page': page,
@@ -34,6 +35,7 @@ class OrdersRepository {
         'date_from': ApiDate.format(dateFrom),
         'date_to': ApiDate.format(dateTo),
       },
+      if (zoneId != null) 'zone_id': zoneId,
     };
 
     final json = await _dio.get<Map<String, dynamic>>(

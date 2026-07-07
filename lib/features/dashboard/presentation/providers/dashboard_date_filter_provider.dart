@@ -1,22 +1,34 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DashboardDateFilter {
-  const DashboardDateFilter({this.dateFrom, this.dateTo});
+  const DashboardDateFilter({
+    this.dateFrom,
+    this.dateTo,
+    this.zoneId,
+  });
 
   final DateTime? dateFrom;
   final DateTime? dateTo;
+  final int? zoneId;
 
-  bool get isActive => dateFrom != null && dateTo != null;
+  bool get hasDateFilter => dateFrom != null && dateTo != null;
+
+  bool get hasZoneFilter => zoneId != null;
+
+  bool get isActive => hasDateFilter || hasZoneFilter;
 
   DashboardDateFilter copyWith({
     DateTime? dateFrom,
     DateTime? dateTo,
+    int? zoneId,
     bool clearFrom = false,
     bool clearTo = false,
+    bool clearZone = false,
   }) {
     return DashboardDateFilter(
       dateFrom: clearFrom ? null : (dateFrom ?? this.dateFrom),
       dateTo: clearTo ? null : (dateTo ?? this.dateTo),
+      zoneId: clearZone ? null : (zoneId ?? this.zoneId),
     );
   }
 }
@@ -40,6 +52,11 @@ class DashboardDateFilterNotifier extends StateNotifier<DashboardDateFilter> {
       next = next.copyWith(dateFrom: normalized);
     }
     state = next;
+  }
+
+  void setZoneId(int? zoneId) {
+    if (zoneId == state.zoneId) return;
+    state = state.copyWith(zoneId: zoneId, clearZone: zoneId == null);
   }
 
   void clear() {

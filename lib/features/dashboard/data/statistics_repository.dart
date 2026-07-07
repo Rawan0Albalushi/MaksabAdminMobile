@@ -150,26 +150,41 @@ class StatisticsRepository {
   final Dio _dio;
 
   Future<DashboardStats> fetchFiltered({
-    required DateTime dateFrom,
-    required DateTime dateTo,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    int? zoneId,
   }) async {
     try {
-      return await _fetchFromOverview(dateFrom, dateTo);
+      return await _fetchFromOverview(
+        dateFrom: dateFrom,
+        dateTo: dateTo,
+        zoneId: zoneId,
+      );
     } on DioException {
-      return _fetchFromPaginate(dateFrom, dateTo);
+      return _fetchFromPaginate(
+        dateFrom: dateFrom,
+        dateTo: dateTo,
+        zoneId: zoneId,
+      );
     }
   }
 
-  Future<DashboardStats> _fetchFromOverview(
-    DateTime dateFrom,
-    DateTime dateTo,
-  ) async {
-    final json = await _dio.get<Map<String, dynamic>>(
-      ApiEndpoints.adminOrdersOverview,
-      queryParameters: {
+  Future<DashboardStats> _fetchFromOverview({
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    int? zoneId,
+  }) async {
+    final queryParameters = <String, dynamic>{
+      if (dateFrom != null && dateTo != null) ...{
         'date_from': ApiDate.format(dateFrom),
         'date_to': ApiDate.format(dateTo),
       },
+      if (zoneId != null) 'zone_id': zoneId,
+    };
+
+    final json = await _dio.get<Map<String, dynamic>>(
+      ApiEndpoints.adminOrdersOverview,
+      queryParameters: queryParameters,
     );
 
     final response = ApiResponse<Map<String, dynamic>>.fromJson(
@@ -191,15 +206,17 @@ class StatisticsRepository {
     );
   }
 
-  Future<DashboardStats> _fetchFromPaginate(
-    DateTime dateFrom,
-    DateTime dateTo,
-  ) async {
+  Future<DashboardStats> _fetchFromPaginate({
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    int? zoneId,
+  }) async {
     final ordersResult = await _ordersRepository.fetchOrders(
       page: 1,
       perPage: 15,
       dateFrom: dateFrom,
       dateTo: dateTo,
+      zoneId: zoneId,
     );
 
     final stats = DashboardStats.fromStatistic(ordersResult.statistic);
@@ -222,8 +239,9 @@ final filteredDashboardStatsProvider = FutureProvider<DashboardStats>((ref) asyn
   }
 
   return ref.read(statisticsRepositoryProvider).fetchFiltered(
-        dateFrom: filter.dateFrom!,
-        dateTo: filter.dateTo!,
+        dateFrom: filter.dateFrom,
+        dateTo: filter.dateTo,
+        zoneId: filter.zoneId,
       );
 });
 

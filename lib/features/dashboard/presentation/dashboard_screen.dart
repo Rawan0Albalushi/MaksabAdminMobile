@@ -74,6 +74,27 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: () => context.go('/home'),
+                          icon: const Icon(Icons.arrow_back_rounded),
+                          color: Colors.white,
+                          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                        ),
+                        Expanded(
+                          child: Text(
+                            'dashboard'.tr(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
                     Text(
                       'welcome_back'.tr(),
                       style: const TextStyle(

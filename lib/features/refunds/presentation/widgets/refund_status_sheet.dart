@@ -97,10 +97,11 @@ class _RefundStatusSheetState extends State<RefundStatusSheet> {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(24),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
           Center(
             child: Container(
               width: 40,
@@ -187,7 +188,8 @@ class _RefundStatusSheetState extends State<RefundStatusSheet> {
             outlined: true,
             onPressed: _loading ? null : () => Navigator.of(context).pop(),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
