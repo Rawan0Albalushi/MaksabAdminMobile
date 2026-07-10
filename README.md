@@ -12,12 +12,12 @@ Flutter admin dashboard for **Maksab** — connected to UAT backend and Firebase
 
 ## Backend
 
-Default API: `https://uatapi.maksab.om/api/v1/`
+Default API: `https://maksab.om/api/v1/`
 
 Override with:
 
 ```bash
-flutter run --dart-define=BASE_URL=https://uatapi.maksab.om/
+flutter run --dart-define=BASE_URL=https://maksab.om/
 ```
 
 ## Run

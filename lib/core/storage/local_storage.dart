@@ -48,7 +48,7 @@ class LocalStorage {
       _prefs.setString(_langKey, code);
 
   Future<String> getLanguage() async =>
-      _prefs.getString(_langKey) ?? 'en';
+      _prefs.getString(_langKey) ?? 'ar';
 
   Future<void> clearAll() async {
     await clearToken();

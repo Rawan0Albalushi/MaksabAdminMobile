@@ -137,8 +137,6 @@ abstract class AppServices {
       AppConfig.roleAccountant,
     ],
     requiredPermissions: ['admin.orders.refund'],
-    showInBottomNav: true,
-    navBranchIndex: 2,
   );
 
   static const chat = AppService(

@@ -4,7 +4,7 @@ class AppConfig {
 
   static const String baseUrl = String.fromEnvironment(
     'BASE_URL',
-    defaultValue: 'https://uatapi.maksab.om/',
+    defaultValue: 'https://maksab.om/',
   );
 
   static const String apiPrefix = 'api/v1/';

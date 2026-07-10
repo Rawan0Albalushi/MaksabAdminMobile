@@ -73,7 +73,8 @@ class ModernBottomNavBar extends StatelessWidget {
                     item: item,
                     selected: selected,
                     onTap: () {
-                      if (index == currentIndex) return;
+                      // Allow re-tapping the selected tab so nested routes
+                      // in the same branch (e.g. /dashboard) can reset to root.
                       HapticFeedback.lightImpact();
                       onTap(index);
                     },

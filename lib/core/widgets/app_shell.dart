@@ -16,8 +16,10 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider).user;
     final navServices = user == null ? <AppService>[] : AppServices.bottomNavFor(user);
-    final currentBranch = navigationShell.currentIndex;
-    final selectedIndex = _visibleIndexForBranch(navServices, currentBranch);
+    // Match the real path so screens like /dashboard (same branch as home)
+    // do not keep the Home tab highlighted.
+    final location = GoRouterState.of(context).uri.path;
+    final selectedIndex = _selectedNavIndex(navServices, location);
 
     return Scaffold(
       extendBody: true,
@@ -56,8 +58,12 @@ class AppShell extends ConsumerWidget {
     );
   }
 
-  int _visibleIndexForBranch(List<AppService> navItems, int branchIndex) {
-    final index = navItems.indexWhere((item) => item.navBranchIndex == branchIndex);
-    return index >= 0 ? index : 0;
+  /// Returns the bottom-nav index for [location], or `-1` when the route is
+  /// not represented in the bar (e.g. dashboard, shops, refunds).
+  int _selectedNavIndex(List<AppService> navItems, String location) {
+    final path = Uri.parse(location).path;
+    return navItems.indexWhere(
+      (item) => path == item.route || path.startsWith('${item.route}/'),
+    );
   }
 }

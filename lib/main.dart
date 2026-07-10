@@ -26,7 +26,7 @@ Future<void> main() async {
       child: EasyLocalization(
         supportedLocales: const [Locale('en'), Locale('ar')],
         path: 'assets/translations',
-        fallbackLocale: const Locale('en'),
+        fallbackLocale: const Locale('ar'),
         startLocale: Locale(savedLang),
         child: const MaksabAdminApp(),
       ),
