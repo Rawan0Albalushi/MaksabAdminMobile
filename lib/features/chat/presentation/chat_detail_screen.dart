@@ -312,20 +312,10 @@ class _ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
       titleSpacing: 0,
       title: Row(
         children: [
-          CircleAvatar(
+          AppNetworkAvatar(
             radius: 18,
-            backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-            backgroundImage:
-                chat?.userImg != null ? NetworkImage(chat!.userImg!) : null,
-            child: chat?.userImg == null
-                ? Text(
-                    name.isNotEmpty ? name[0].toUpperCase() : '?',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
-                    ),
-                  )
-                : null,
+            imageUrl: chat?.userImg,
+            fallbackText: name,
           ),
           const SizedBox(width: 12),
           Expanded(

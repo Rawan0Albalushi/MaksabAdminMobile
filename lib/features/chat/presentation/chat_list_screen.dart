@@ -97,13 +97,9 @@ class _ChatListTile extends StatelessWidget {
     return Card(
       child: ListTile(
         onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-          backgroundImage:
-              chat.userImg != null ? NetworkImage(chat.userImg!) : null,
-          child: chat.userImg == null
-              ? Text(displayName.isNotEmpty ? displayName[0] : '?')
-              : null,
+        leading: AppNetworkAvatar(
+          imageUrl: chat.userImg,
+          fallbackText: displayName,
         ),
         title: Text(
           displayName,

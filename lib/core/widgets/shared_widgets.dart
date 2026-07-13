@@ -1,8 +1,63 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import '../utils/formatters.dart';
+
+/// Circular avatar that loads a network image without dumping 404s to the
+/// console the way [CircleAvatar.backgroundImage] + [NetworkImage] does.
+class AppNetworkAvatar extends StatelessWidget {
+  const AppNetworkAvatar({
+    super.key,
+    this.imageUrl,
+    this.radius = 20,
+    this.fallbackText,
+    this.backgroundColor,
+    this.foregroundColor,
+  });
+
+  final String? imageUrl;
+  final double radius;
+  final String? fallbackText;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = backgroundColor ?? AppColors.primary.withValues(alpha: 0.12);
+    final fg = foregroundColor ?? AppColors.primary;
+    final initial = (fallbackText != null && fallbackText!.trim().isNotEmpty)
+        ? fallbackText!.trim()[0].toUpperCase()
+        : '?';
+    final fallback = CircleAvatar(
+      radius: radius,
+      backgroundColor: bg,
+      child: Text(
+        initial,
+        style: TextStyle(
+          color: fg,
+          fontWeight: FontWeight.w600,
+          fontSize: radius * 0.75,
+        ),
+      ),
+    );
+
+    final url = imageUrl?.trim();
+    if (url == null || url.isEmpty) return fallback;
+
+    return ClipOval(
+      child: CachedNetworkImage(
+        imageUrl: url,
+        width: radius * 2,
+        height: radius * 2,
+        fit: BoxFit.cover,
+        placeholder: (_, __) => fallback,
+        errorWidget: (_, __, ___) => fallback,
+      ),
+    );
+  }
+}
 
 class MaksabButton extends StatelessWidget {
   const MaksabButton({

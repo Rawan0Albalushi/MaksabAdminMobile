@@ -27,23 +27,12 @@ class SettingsScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(20),
               child: Row(
                 children: [
-                  CircleAvatar(
+                  AppNetworkAvatar(
                     radius: 28,
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-                    backgroundImage:
-                        user?.img != null ? NetworkImage(user!.img!) : null,
-                    child: user?.img == null
-                        ? Text(
-                            user?.fullName.isNotEmpty == true
-                                ? user!.fullName[0]
-                                : 'A',
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
-                          )
-                        : null,
+                    imageUrl: user?.img,
+                    fallbackText: user?.fullName.isNotEmpty == true
+                        ? user!.fullName
+                        : 'A',
                   ),
                   const SizedBox(width: 16),
                   Expanded(

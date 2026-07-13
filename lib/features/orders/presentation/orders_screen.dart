@@ -92,8 +92,14 @@ class OrderCard extends StatelessWidget {
                     const Icon(Icons.person_outline,
                         size: 16, color: AppColors.textSecondary),
                     const SizedBox(width: 6),
-                    Text(order.username!,
-                        style: const TextStyle(color: AppColors.textSecondary)),
+                    Expanded(
+                      child: Text(
+                        order.username!,
+                        style: const TextStyle(color: AppColors.textSecondary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
               ],

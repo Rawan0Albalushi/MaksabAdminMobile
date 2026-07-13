@@ -162,7 +162,6 @@ class OrderDetailHeader extends StatelessWidget {
                     ],
                   ),
                 ),
-                OrderStatusChip(status: order.status),
               ],
             ),
             const SizedBox(height: 20),
