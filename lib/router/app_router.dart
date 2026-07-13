@@ -14,6 +14,8 @@ import '../features/orders/presentation/orders_screen.dart';
 import '../features/refunds/presentation/refund_detail_screen.dart';
 import '../features/refunds/presentation/refunds_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
+import '../features/drivers/presentation/driver_detail_screen.dart';
+import '../features/drivers/presentation/drivers_screen.dart';
 import '../features/shops/presentation/shop_detail_screen.dart';
 import '../features/shops/presentation/shops_screen.dart';
 import '../core/widgets/app_shell.dart';
@@ -57,6 +59,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final uuid = state.pathParameters['uuid']!;
           return ShopDetailScreen(shopUuid: uuid);
+        },
+      ),
+      GoRoute(
+        path: '/drivers/:uuid',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final uuid = state.pathParameters['uuid']!;
+          return DriverDetailScreen(driverUuid: uuid);
         },
       ),
       StatefulShellRoute.indexedStack(
@@ -143,6 +153,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/shops',
                 builder: (context, state) => const ShopsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/drivers',
+                builder: (context, state) => const DriversScreen(),
               ),
             ],
           ),

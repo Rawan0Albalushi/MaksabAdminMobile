@@ -56,12 +56,14 @@ class OrderLineItem {
 class OrderDeliveryPerson {
   const OrderDeliveryPerson({
     required this.name,
+    this.uuid,
     this.phone,
     this.email,
     this.image,
   });
 
   final String name;
+  final String? uuid;
   final String? phone;
   final String? email;
   final String? image;
@@ -74,8 +76,11 @@ class OrderDeliveryPerson {
       name = json['name']?.toString().trim() ?? '';
     }
 
+    final uuid = json['uuid']?.toString().trim();
+
     return OrderDeliveryPerson(
       name: name.isEmpty ? '—' : name,
+      uuid: uuid != null && uuid.isNotEmpty ? uuid : null,
       phone: json['phone']?.toString(),
       email: json['email']?.toString(),
       image: json['img']?.toString(),

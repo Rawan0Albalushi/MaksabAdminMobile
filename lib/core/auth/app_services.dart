@@ -109,6 +109,22 @@ abstract class AppServices {
     requiredPermissions: ['admin.shops.manage'],
   );
 
+  static const drivers = AppService(
+    id: 'drivers',
+    route: '/drivers',
+    titleKey: 'drivers',
+    subtitleKey: 'home_drivers_desc',
+    icon: Icons.delivery_dining_outlined,
+    selectedIcon: Icons.delivery_dining_rounded,
+    style: ServiceGradients.drivers,
+    allowedRoles: [
+      AppConfig.roleAdmin,
+      AppConfig.roleZoneAdmin,
+      AppConfig.roleZoneManager,
+    ],
+    requiredPermissions: ['admin.shops.manage'],
+  );
+
   static const orders = AppService(
     id: 'orders',
     route: '/orders',
@@ -179,6 +195,7 @@ abstract class AppServices {
   static const List<AppService> all = [
     dashboard,
     shops,
+    drivers,
     orders,
     refunds,
     chat,

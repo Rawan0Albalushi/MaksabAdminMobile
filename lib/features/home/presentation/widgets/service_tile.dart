@@ -198,6 +198,15 @@ abstract class ServiceGradients {
     accent: Color(0xFF2E7D32),
   );
 
+  static const drivers = ServiceStyle(
+    gradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [Color(0xFFE0F5F5), Color(0xFFC8EBEB)],
+    ),
+    accent: Color(0xFF00979B),
+  );
+
   static const refunds = ServiceStyle(
     gradient: LinearGradient(
       begin: Alignment.topLeft,

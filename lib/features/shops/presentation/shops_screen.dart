@@ -9,10 +9,10 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/utils/media_url.dart';
 import '../../../core/utils/responsive.dart';
 import '../../../core/widgets/shared_widgets.dart';
+import '../../dashboard/presentation/widgets/zone_filter.dart';
 import '../domain/shop_model.dart';
 import 'providers/shops_provider.dart';
 import 'widgets/shop_status_chip.dart';
-import 'widgets/shops_zone_filter.dart';
 
 class ShopCard extends StatelessWidget {
   const ShopCard({super.key, required this.shop, required this.onTap});
@@ -220,7 +220,7 @@ class _ShopsScreenState extends ConsumerState<ShopsScreen> {
                           ref.read(shopsProvider.notifier).setSearch(v),
                     ),
                     const SizedBox(height: 12),
-                    ShopsZoneFilter(
+                    ZoneFilter(
                       selectedZoneId: state.zoneId,
                       onZoneChanged: (zoneId) {
                         if (_scrollController.hasClients) {

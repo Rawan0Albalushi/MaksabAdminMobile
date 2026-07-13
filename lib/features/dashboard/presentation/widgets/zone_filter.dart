@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../dashboard/data/zones_repository.dart';
+import '../../data/zones_repository.dart';
 
-class ShopsZoneFilter extends ConsumerWidget {
-  const ShopsZoneFilter({
+/// Horizontal zone chips shared by shops, drivers, and other list screens.
+class ZoneFilter extends ConsumerWidget {
+  const ZoneFilter({
     super.key,
     required this.selectedZoneId,
     required this.onZoneChanged,
@@ -147,8 +148,9 @@ class _ZoneChip extends StatelessWidget {
               Text(
                 label,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color:
-                          selected ? AppColors.primary : AppColors.textSecondary,
+                      color: selected
+                          ? AppColors.primary
+                          : AppColors.textSecondary,
                       fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                     ),
               ),

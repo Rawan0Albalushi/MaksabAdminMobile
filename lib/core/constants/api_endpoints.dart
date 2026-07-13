@@ -20,6 +20,15 @@ abstract class ApiEndpoints {
   static const adminZones = 'dashboard/admin/zones';
   static String adminManagerZones(String uuid) =>
       'dashboard/admin/zones/manager/$uuid';
+  static String adminUserZones(String uuid) =>
+      'dashboard/admin/zones/user/$uuid';
+  static const adminAssignDriverZones = 'dashboard/admin/zones/assign-driver';
+
+  static const adminDeliverymansPaginate =
+      'dashboard/admin/deliverymans/paginate';
+  static String adminUser(String uuid) => 'dashboard/admin/users/$uuid';
+  static String adminUserActive(String uuid) =>
+      'dashboard/admin/users/$uuid/active';
 
   static const adminStatistics = 'dashboard/admin/statistics';
   static const adminOrdersOverview =

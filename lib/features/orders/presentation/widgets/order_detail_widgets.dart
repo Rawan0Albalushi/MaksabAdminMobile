@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
@@ -673,25 +674,46 @@ class OrderDeliveryManSection extends StatelessWidget {
     if (order.isPickup) return const SizedBox.shrink();
 
     final deliveryMan = order.deliveryMan;
+    final driverUuid = deliveryMan?.uuid?.trim();
+    final canOpenDriver = driverUuid != null && driverUuid.isNotEmpty;
 
     return _SectionCard(
       title: 'delivery_man'.tr(),
       child: deliveryMan != null
           ? Column(
               children: [
-                Row(
-                  children: [
-                    _DeliveryAvatar(imageUrl: deliveryMan.image),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Text(
-                        deliveryMan.name,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                      ),
+                InkWell(
+                  onTap: canOpenDriver
+                      ? () => context.push('/drivers/$driverUuid')
+                      : null,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        AppNetworkAvatar(
+                          radius: 28,
+                          imageUrl: MediaUrl.resolve(deliveryMan.image),
+                          fallbackText: deliveryMan.name,
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Text(
+                            deliveryMan.name,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                        if (canOpenDriver)
+                          const Icon(
+                            Icons.chevron_right,
+                            color: AppColors.textHint,
+                          ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
                 if (deliveryMan.phone != null &&
                     deliveryMan.phone!.isNotEmpty) ...[
@@ -721,43 +743,6 @@ class OrderDeliveryManSection extends StatelessWidget {
                     color: AppColors.textSecondary,
                   ),
             ),
-    );
-  }
-}
-
-class _DeliveryAvatar extends StatelessWidget {
-  const _DeliveryAvatar({this.imageUrl});
-
-  final String? imageUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    final url = MediaUrl.resolve(imageUrl);
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(28),
-      child: url != null
-          ? CachedNetworkImage(
-              imageUrl: url,
-              width: 56,
-              height: 56,
-              fit: BoxFit.cover,
-              placeholder: (_, __) => _placeholder(),
-              errorWidget: (_, __, ___) => _placeholder(),
-            )
-          : _placeholder(),
-    );
-  }
-
-  Widget _placeholder() {
-    return Container(
-      width: 56,
-      height: 56,
-      color: AppColors.surfaceVariant,
-      child: const Icon(
-        Icons.delivery_dining_outlined,
-        color: AppColors.textHint,
-      ),
     );
   }
 }
