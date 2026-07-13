@@ -42,7 +42,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   String _loginErrorMessage(String error) {
-    const translationKeys = {'login_failed', 'access_denied'};
+    const translationKeys = {
+      'login_failed',
+      'access_denied',
+      'session_expired',
+    };
     if (translationKeys.contains(error)) return error.tr();
     return error;
   }
@@ -50,6 +54,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
+
+    ref.listen<AuthState>(authProvider, (previous, next) {
+      if (next.error != 'session_expired') return;
+      if (previous?.error == next.error) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('session_expired'.tr())),
+      );
+    });
 
     return Scaffold(
       body: SafeArea(

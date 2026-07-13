@@ -249,6 +249,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = const AuthState();
   }
 
+  /// Clears in-memory auth after storage was already wiped on 401.
+  void onSessionExpired() {
+    if (!state.isAuthenticated) return;
+    state = const AuthState(error: 'session_expired');
+  }
+
   String _mapLoginError(Object error) {
     if (error is DioException) {
       final apiError = parseApiError(error);
@@ -273,5 +279,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
 final authProvider =
     StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  return AuthNotifier(ref.watch(authRepositoryProvider));
+  final notifier = AuthNotifier(ref.watch(authRepositoryProvider));
+  ref.listen<int>(sessionExpiredSignalProvider, (previous, next) {
+    if (previous == next) return;
+    notifier.onSessionExpired();
+  });
+  return notifier;
 });

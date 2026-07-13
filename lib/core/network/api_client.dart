@@ -3,16 +3,35 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/app_config.dart';
+import '../constants/api_endpoints.dart';
 import '../storage/local_storage.dart';
 import 'api_response.dart';
 
+/// Bumped when the API returns 401 so [authProvider] can clear in-memory state.
+final sessionExpiredSignalProvider = StateProvider<int>((ref) => 0);
+
 final dioProvider = Provider<Dio>((ref) {
   final storage = ref.watch(localStorageProvider);
-  return ApiClient(storage).dio;
+  var handlingUnauthorized = false;
+
+  return ApiClient(
+    storage,
+    onUnauthorized: () async {
+      if (handlingUnauthorized) return;
+      handlingUnauthorized = true;
+      try {
+        await storage.clearAll();
+        ref.read(sessionExpiredSignalProvider.notifier).state++;
+      } finally {
+        handlingUnauthorized = false;
+      }
+    },
+  ).dio;
 });
 
 class ApiClient {
-  ApiClient(this._storage) {
+  ApiClient(this._storage, {Future<void> Function()? onUnauthorized})
+      : _onUnauthorized = onUnauthorized {
     _dio = Dio(
       BaseOptions(
         baseUrl: AppConfig.apiUrl,
@@ -46,7 +65,12 @@ class ApiClient {
           options.queryParameters = {'lang': lang, ...options.queryParameters};
           handler.next(options);
         },
-        onError: (error, handler) {
+        onError: (error, handler) async {
+          final statusCode = error.response?.statusCode;
+          if (statusCode == 401 && _shouldForceLogout(error.requestOptions)) {
+            await _onUnauthorized?.call();
+          }
+
           final data = error.response?.data;
           final message = data is Map
               ? data['message']?.toString() ?? error.message
@@ -58,7 +82,7 @@ class ApiClient {
               type: error.type,
               error: ApiException(
                 message: message ?? 'Network error',
-                statusCode: error.response?.statusCode,
+                statusCode: statusCode,
                 code: data is Map ? data['statusCode']?.toString() : null,
               ),
             ),
@@ -69,9 +93,16 @@ class ApiClient {
   }
 
   final LocalStorage _storage;
+  final Future<void> Function()? _onUnauthorized;
   late final Dio _dio;
 
   Dio get dio => _dio;
+
+  bool _shouldForceLogout(RequestOptions options) {
+    final path = options.path;
+    return !path.contains(ApiEndpoints.authLogin) &&
+        !path.contains(ApiEndpoints.authLogout);
+  }
 
   Future<Map<String, dynamic>> get(
     String path, {

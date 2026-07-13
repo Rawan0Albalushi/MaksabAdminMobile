@@ -8,6 +8,7 @@
   "login_failed": "Login failed. Check your credentials.",
   "access_denied": "Access denied. Admin or zone admin account required.",
   "logout": "Logout",
+  "session_expired": "Session expired. Please sign in again.",
   "dashboard": "Statistics",
   "orders": "Orders",
   "chat": "Chat",
