@@ -71,21 +71,46 @@ class AuthRepository {
     return user;
   }
 
-  Future<Map<String, dynamic>> fetchCurrentUserProfile() async {
+  Future<List<int>> fetchManagedZoneIds(String uuid) async {
     final response = await _dio.get<Map<String, dynamic>>(
-      ApiEndpoints.adminUserSelf,
+      ApiEndpoints.adminManagerZones(uuid),
     );
     final json = response.data ?? {};
     final parsed = ApiResponse<dynamic>.fromJson(json, null);
     final raw = parsed.data ?? json;
 
-    if (raw is Map<String, dynamic>) {
-      return Map<String, dynamic>.from(raw);
+    final ids = <int>{};
+
+    void addId(dynamic value) {
+      if (value is int && value > 0) {
+        ids.add(value);
+      } else if (value is num && value.toInt() > 0) {
+        ids.add(value.toInt());
+      } else if (value is String) {
+        final parsedId = int.tryParse(value.trim());
+        if (parsedId != null && parsedId > 0) ids.add(parsedId);
+      } else if (value is Map) {
+        addId(value['id'] ?? value['zone_id']);
+      }
     }
-    if (raw is Map) {
-      return Map<String, dynamic>.from(raw);
+
+    if (raw is List) {
+      for (final item in raw) {
+        addId(item);
+      }
+    } else if (raw is Map) {
+      for (final key in ['zones', 'data', 'items', 'managed_zones']) {
+        final nested = raw[key];
+        if (nested is List) {
+          for (final item in nested) {
+            addId(item);
+          }
+        }
+      }
+      if (ids.isEmpty) addId(raw);
     }
-    return json;
+
+    return ids.toList();
   }
 
   Future<AdminUser> enrichZoneAssignments(AdminUser user) async {
@@ -93,11 +118,19 @@ class AuthRepository {
       return user;
     }
 
+    final uuid = user.uuid?.trim();
+    if (uuid == null || uuid.isEmpty) {
+      if (kDebugMode) {
+        debugPrint(
+          '[Auth] Cannot refresh zone assignments for ${user.email}: missing uuid',
+        );
+      }
+      return user;
+    }
+
     try {
-      final data = await fetchCurrentUserProfile();
-      final profile = AdminUser.profileFromLoginData({'user': data, ...data});
-      final refreshed = AdminUser.fromJson(profile, token: user.token);
-      if (refreshed.zoneIds.isEmpty) {
+      final zoneIds = await fetchManagedZoneIds(uuid);
+      if (zoneIds.isEmpty) {
         if (kDebugMode) {
           debugPrint(
             '[Auth] No zone assignments for ${user.email} '
@@ -107,7 +140,7 @@ class AuthRepository {
         return user;
       }
 
-      final merged = user.copyWith(zoneIds: refreshed.zoneIds);
+      final merged = user.copyWith(zoneIds: zoneIds);
       await _storage.saveUser(merged.toJson());
       if (kDebugMode) {
         debugPrint(
@@ -118,6 +151,9 @@ class AuthRepository {
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[Auth] Failed to refresh zone assignments: $e');
+        if (e is DioException) {
+          debugPrint('Error: ${parseApiError(e).message}');
+        }
       }
       return user;
     }

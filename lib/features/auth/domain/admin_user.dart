@@ -8,6 +8,7 @@ class AdminUser {
     required this.lastname,
     required this.email,
     required this.roles,
+    this.uuid,
     this.permissions = const [],
     this.zoneIds = const [],
     this.img,
@@ -15,6 +16,7 @@ class AdminUser {
   });
 
   final int id;
+  final String? uuid;
   final String firstname;
   final String lastname;
   final String email;
@@ -71,6 +73,7 @@ class AdminUser {
 
   AdminUser copyWith({
     int? id,
+    String? uuid,
     String? firstname,
     String? lastname,
     String? email,
@@ -82,6 +85,7 @@ class AdminUser {
   }) {
     return AdminUser(
       id: id ?? this.id,
+      uuid: uuid ?? this.uuid,
       firstname: firstname ?? this.firstname,
       lastname: lastname ?? this.lastname,
       email: email ?? this.email,
@@ -149,12 +153,20 @@ class AdminUser {
 
   factory AdminUser.fromJson(Map<String, dynamic> json, {String? token}) {
     final roles = _parseRoles(json);
-    final permissions = _parseStringList(json['permissions']) ??
+    var permissions = _parseStringList(json['permissions']) ??
         _parseStringList(json['abilities']) ??
         const <String>[];
 
+    // Match portal legacyDefaults when API omits permissions for known roles.
+    if (permissions.isEmpty) {
+      permissions = _legacyPermissionsForRoles(roles);
+    }
+
+    final uuid = json['uuid']?.toString().trim();
+
     return AdminUser(
       id: _parseId(json['id']),
+      uuid: (uuid != null && uuid.isNotEmpty) ? uuid : null,
       firstname: json['firstname']?.toString() ??
           json['first_name']?.toString() ??
           '',
@@ -168,6 +180,56 @@ class AdminUser {
       img: MediaUrl.resolve(json['img']?.toString()),
       token: token,
     );
+  }
+
+  /// Mirrors MaksabPortalFrontend `getLegacyAdminPermissions`.
+  static List<String> _legacyPermissionsForRoles(List<String> roles) {
+    final normalized = roles.map(_normalizeRole).toSet();
+    if (normalized.contains(AppConfig.roleAdmin)) {
+      return const [
+        AppConfig.portalAccessPermission,
+        'admin.users.view',
+        'admin.users.manage',
+        'admin.orders.view',
+        'admin.orders.manage',
+        'admin.orders.refund',
+        'admin.shops.manage',
+        'admin.payouts.manage',
+        'admin.transactions.view',
+        'admin.settings.manage',
+        'admin.reports.view',
+        'admin.roles.manage',
+        'admin.chat.view',
+      ];
+    }
+    if (normalized.contains(AppConfig.roleZoneManager) ||
+        normalized.contains('zone_manager') ||
+        normalized.contains('zone-manager')) {
+      return const [
+        AppConfig.portalAccessPermission,
+        'admin.users.view',
+        'admin.users.manage',
+        'admin.orders.view',
+        'admin.orders.manage',
+        'admin.shops.manage',
+      ];
+    }
+    if (normalized.contains(AppConfig.roleZoneAdmin)) {
+      return const [
+        AppConfig.portalAccessPermission,
+        'admin.users.view',
+        'admin.users.manage',
+        'admin.orders.view',
+        'admin.orders.manage',
+        'admin.orders.refund',
+        'admin.shops.manage',
+        'admin.payouts.manage',
+        'admin.transactions.view',
+        'admin.reports.view',
+        'admin.chat.view',
+      ];
+    }
+    return const [];
   }
 
   static int _parseId(dynamic value) {
@@ -310,6 +372,7 @@ class AdminUser {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+        'uuid': uuid,
         'firstname': firstname,
         'lastname': lastname,
         'email': email,

@@ -36,7 +36,9 @@ List<ZoneModel> zonesForUser(List<ZoneModel> allZones, AdminUser? user) {
     return managedZones;
   }
 
-  return const [];
+  // Backend already scopes zone lists for zone managers when zoneIds are
+  // missing locally — keep the API result instead of wiping the filter.
+  return allZones;
 }
 
 class ZonesRepository {

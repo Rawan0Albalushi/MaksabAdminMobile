@@ -36,8 +36,12 @@ class AppService {
     if (user.isFullAdmin) return true;
 
     final roleAllowed = user.canAccessRoles(allowedRoles);
+    if (!roleAllowed) return false;
+
+    // Match portal: when permissions are omitted/empty, fall back to role access
+    // (legacyDefaults for zone.manager). When present, require at least one.
     if (requiredPermissions.isEmpty || user.permissions.isEmpty) {
-      return roleAllowed;
+      return true;
     }
 
     return user.hasAnyPermission(requiredPermissions);
