@@ -1,67 +1,63 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../dashboard/domain/zone_model.dart';
 import '../../data/drivers_repository.dart';
-import '../../domain/driver_model.dart';
+import '../../domain/deliveryman_request_model.dart';
 
-class DriversState {
-  const DriversState({
-    this.drivers = const [],
+class DeliverymanRequestsState {
+  const DeliverymanRequestsState({
+    this.requests = const [],
     this.loading = false,
     this.loadingMore = false,
     this.error,
     this.currentPage = 1,
     this.lastPage = 1,
     this.total = 0,
-    this.search = '',
-    this.zoneId,
   });
 
-  final List<DriverModel> drivers;
+  final List<DeliverymanRequestModel> requests;
   final bool loading;
   final bool loadingMore;
   final String? error;
   final int currentPage;
   final int lastPage;
   final int total;
-  final String search;
-  final int? zoneId;
 
   bool get hasMore => currentPage < lastPage;
 
-  DriversState copyWith({
-    List<DriverModel>? drivers,
+  DeliverymanRequestsState copyWith({
+    List<DeliverymanRequestModel>? requests,
     bool? loading,
     bool? loadingMore,
     String? error,
     int? currentPage,
     int? lastPage,
     int? total,
-    String? search,
-    int? zoneId,
-    bool clearZone = false,
   }) {
-    return DriversState(
-      drivers: drivers ?? this.drivers,
+    return DeliverymanRequestsState(
+      requests: requests ?? this.requests,
       loading: loading ?? this.loading,
       loadingMore: loadingMore ?? this.loadingMore,
       error: error,
       currentPage: currentPage ?? this.currentPage,
       lastPage: lastPage ?? this.lastPage,
       total: total ?? this.total,
-      search: search ?? this.search,
-      zoneId: clearZone ? null : (zoneId ?? this.zoneId),
     );
   }
 }
 
-class DriversNotifier extends StateNotifier<DriversState> {
-  DriversNotifier(this._repo) : super(const DriversState());
+class DeliverymanRequestsNotifier
+    extends StateNotifier<DeliverymanRequestsState> {
+  DeliverymanRequestsNotifier(this._repo)
+      : super(const DeliverymanRequestsState());
 
   final DriversRepository _repo;
   int _requestId = 0;
+  bool _loadedOnce = false;
 
   Future<void> load({bool refresh = false}) async {
+    if (_loadedOnce && !refresh && state.requests.isNotEmpty && !state.loading) {
+      return;
+    }
     final requestId = ++_requestId;
     if (refresh) {
       state = state.copyWith(error: null);
@@ -73,14 +69,11 @@ class DriversNotifier extends StateNotifier<DriversState> {
 
   Future<void> _reload({required int requestId}) async {
     try {
-      final result = await _repo.fetchDrivers(
-        page: 1,
-        search: state.search,
-        zoneId: state.zoneId,
-      );
+      final result = await _repo.fetchDeliverymanRequests(page: 1);
       if (requestId != _requestId) return;
+      _loadedOnce = true;
       state = state.copyWith(
-        drivers: result.drivers,
+        requests: result.requests,
         currentPage: result.currentPage,
         lastPage: result.lastPage,
         total: result.total,
@@ -96,13 +89,11 @@ class DriversNotifier extends StateNotifier<DriversState> {
     if (state.loadingMore || !state.hasMore) return;
     state = state.copyWith(loadingMore: true);
     try {
-      final result = await _repo.fetchDrivers(
+      final result = await _repo.fetchDeliverymanRequests(
         page: state.currentPage + 1,
-        search: state.search,
-        zoneId: state.zoneId,
       );
       state = state.copyWith(
-        drivers: [...state.drivers, ...result.drivers],
+        requests: [...state.requests, ...result.requests],
         currentPage: result.currentPage,
         lastPage: result.lastPage,
         loadingMore: false,
@@ -112,45 +103,26 @@ class DriversNotifier extends StateNotifier<DriversState> {
     }
   }
 
-  Future<void> setSearch(String query) async {
-    if (state.search == query) return;
-    final requestId = ++_requestId;
-    state = state.copyWith(
-      search: query,
-      drivers: const [],
-      loading: true,
-      error: null,
-      currentPage: 1,
+  Future<void> changeStatus({
+    required int id,
+    required String status,
+    String? statusNote,
+  }) async {
+    await _repo.changeDeliverymanRequestStatus(
+      id: id,
+      status: status,
+      statusNote: statusNote,
     );
-    await _reload(requestId: requestId);
-  }
-
-  Future<void> setZoneFilter(int? zoneId) async {
-    if (state.zoneId == zoneId) return;
     final requestId = ++_requestId;
-    state = state.copyWith(
-      zoneId: zoneId,
-      clearZone: zoneId == null,
-      drivers: const [],
-      loading: true,
-      error: null,
-      currentPage: 1,
-    );
+    state = state.copyWith(error: null);
     await _reload(requestId: requestId);
   }
 }
 
-final driversProvider =
-    StateNotifierProvider<DriversNotifier, DriversState>((ref) {
-  return DriversNotifier(ref.watch(driversRepositoryProvider));
+final deliverymanRequestsProvider = StateNotifierProvider<
+    DeliverymanRequestsNotifier, DeliverymanRequestsState>((ref) {
+  return DeliverymanRequestsNotifier(ref.watch(driversRepositoryProvider));
 });
 
-final driverDetailProvider =
-    FutureProvider.family<DriverModel, String>((ref, uuid) async {
-  return ref.watch(driversRepositoryProvider).fetchDriver(uuid);
-});
-
-final driverAssignedZonesProvider =
-    FutureProvider.family<List<ZoneModel>, String>((ref, uuid) async {
-  return ref.watch(driversRepositoryProvider).fetchAssignedZones(uuid);
-});
+/// Top-level tab on drivers screen: `list` | `requests`.
+final driversTabProvider = StateProvider<String>((ref) => 'list');

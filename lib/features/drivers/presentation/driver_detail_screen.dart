@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
@@ -398,6 +399,67 @@ class _DriverDetailScreenState extends ConsumerState<DriverDetailScreen> {
                               ],
                             ),
                           ],
+                          const SizedBox(height: 20),
+                          _sectionTitle(context, 'driver_delivery_requests'.tr()),
+                          const SizedBox(height: 10),
+                          if (driver.orders.isEmpty)
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.inbox_outlined,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        'driver_no_delivery_requests'.tr(),
+                                        style: const TextStyle(
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else
+                            ...driver.orders.map(
+                              (order) => Card(
+                                margin: const EdgeInsets.only(bottom: 10),
+                                child: ListTile(
+                                  onTap: () =>
+                                      context.push('/orders/${order.id}'),
+                                  leading: CircleAvatar(
+                                    backgroundColor: AppColors.primary
+                                        .withValues(alpha: 0.12),
+                                    child: const Icon(
+                                      Icons.local_shipping_outlined,
+                                      color: AppColors.primary,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  title: Text(
+                                    '#${Formatters.orderId(order.id)}'
+                                    '${order.shopName != null ? ' • ${order.shopName}' : ''}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  subtitle: Text(
+                                    [
+                                      if (order.customerName != null)
+                                        order.customerName!,
+                                      Formatters.currency(order.totalPrice),
+                                    ].join(' • '),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  trailing: OrderStatusChip(status: order.status),
+                                ),
+                              ),
+                            ),
                         ]),
                       ),
                     ),

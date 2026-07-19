@@ -2,21 +2,21 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Maksab Admin (Production Debug)",
+      "name": "Maksab Admin (Local Debug)",
       "request": "launch",
       "type": "dart",
       "flutterMode": "debug",
       "args": [
-        "--dart-define=BASE_URL=https://maksab.om/"
+        "--dart-define=BASE_URL=http://192.168.100.35:8000/"
       ]
     },
     {
-      "name": "Maksab Admin (Production Release)",
+      "name": "Maksab Admin (Local Release)",
       "request": "launch",
       "type": "dart",
       "flutterMode": "release",
       "args": [
-        "--dart-define=BASE_URL=https://maksab.om/"
+        "--dart-define=BASE_URL=http://192.168.100.35:8000/"
       ]
     }
   ]

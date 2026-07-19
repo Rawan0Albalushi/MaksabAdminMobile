@@ -30,6 +30,11 @@ abstract class ApiEndpoints {
   static String adminUserActive(String uuid) =>
       'dashboard/admin/users/$uuid/active';
 
+  /// Deliveryman settings requests (`/deliveryman/request` in portal).
+  static const adminRequestModels = 'dashboard/admin/request-models';
+  static String adminRequestModelStatus(int id) =>
+      'dashboard/admin/request-model/status/$id';
+
   static const adminStatistics = 'dashboard/admin/statistics';
   static const adminOrdersOverview =
       'dashboard/admin/statistics/orders/overview';

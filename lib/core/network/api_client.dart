@@ -37,6 +37,8 @@ class ApiClient {
         baseUrl: AppConfig.apiUrl,
         connectTimeout: const Duration(seconds: 20),
         receiveTimeout: const Duration(seconds: 30),
+        // PHP/Laravel array query params need zone_ids[]=1 not zone_ids=1.
+        listFormat: ListFormat.multiCompatible,
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',

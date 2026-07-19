@@ -74,18 +74,27 @@ class DriverCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                    if (setting != null) ...[
+                    if (setting != null ||
+                        driver.ordersCount != null ||
+                        driver.ratingAvg != null) ...[
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          if (setting.typeOfTechnique != null)
+                          if (setting?.typeOfTechnique != null)
                             _badge(
-                              'driver_vehicle_${setting.typeOfTechnique}'.tr(),
+                              'driver_vehicle_${setting!.typeOfTechnique}'.tr(),
                               AppColors.primary,
                             ),
-                          if (setting.online) ...[
+                          if (setting?.online == true) ...[
                             const SizedBox(width: 8),
                             _badge('driver_online'.tr(), AppColors.success),
+                          ],
+                          if (driver.ordersCount != null) ...[
+                            const SizedBox(width: 8),
+                            _badge(
+                              '${driver.ordersCount} ${'orders'.tr()}',
+                              AppColors.textSecondary,
+                            ),
                           ],
                           const Spacer(),
                           if (driver.ratingAvg != null)
