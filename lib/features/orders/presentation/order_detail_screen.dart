@@ -9,6 +9,7 @@ import '../data/orders_repository.dart';
 import '../domain/order_model.dart';
 import 'providers/orders_provider.dart';
 import 'widgets/order_detail_widgets.dart';
+import 'widgets/select_delivery_man_sheet.dart';
 import 'widgets/status_confirm_dialog.dart';
 
 class OrderDetailScreen extends ConsumerStatefulWidget {
@@ -22,6 +23,7 @@ class OrderDetailScreen extends ConsumerStatefulWidget {
 
 class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   String? _updatingStatus;
+  bool _updatingDeliveryMan = false;
 
   static const _nextStatuses = {
     'new': ['accepted', 'canceled'],
@@ -50,7 +52,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
 
     setState(() => _updatingStatus = status);
     try {
-      await ref.read(ordersRepositoryProvider).updateStatus(widget.orderId, status);
+      await ref
+          .read(ordersRepositoryProvider)
+          .updateStatus(widget.orderId, status);
       ref.invalidate(orderDetailProvider(widget.orderId));
       ref.read(ordersProvider.notifier).load(refresh: true);
       if (mounted) {
@@ -67,6 +71,30 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     } finally {
       if (mounted) setState(() => _updatingStatus = null);
     }
+  }
+
+  Future<void> _changeDeliveryMan(OrderModel order) async {
+    await SelectDeliveryManSheet.show(
+      context,
+      currentDriverId: order.deliveryMan?.id,
+      onSelected: (driver) async {
+        setState(() => _updatingDeliveryMan = true);
+        try {
+          await ref
+              .read(ordersRepositoryProvider)
+              .updateDeliveryMan(widget.orderId, driver.id);
+          ref.invalidate(orderDetailProvider(widget.orderId));
+          ref.read(ordersProvider.notifier).load(refresh: true);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('delivery_man_updated'.tr())),
+            );
+          }
+        } finally {
+          if (mounted) setState(() => _updatingDeliveryMan = false);
+        }
+      },
+    );
   }
 
   @override
@@ -124,7 +152,12 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                       OrderShopSection(order: order),
                       if (!order.isPickup) ...[
                         const SizedBox(height: 12),
-                        OrderDeliveryManSection(order: order),
+                        OrderDeliveryManSection(
+                          order: order,
+                          updating: _updatingDeliveryMan,
+                          onChangeDeliveryMan: () =>
+                              _changeDeliveryMan(order),
+                        ),
                       ],
                       const SizedBox(height: 12),
                       OrderInfoSection(order: order),

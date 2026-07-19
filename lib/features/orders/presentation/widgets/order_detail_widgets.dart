@@ -655,12 +655,24 @@ class _OrderItemTile extends StatelessWidget {
 }
 
 class OrderDeliveryManSection extends StatelessWidget {
-  const OrderDeliveryManSection({super.key, required this.order});
+  const OrderDeliveryManSection({
+    super.key,
+    required this.order,
+    this.onChangeDeliveryMan,
+    this.updating = false,
+  });
 
   final OrderModel order;
+  final VoidCallback? onChangeDeliveryMan;
+  final bool updating;
 
   bool get _showPendingMessage =>
       order.status == 'new' || order.status == 'accepted';
+
+  bool get _canChange =>
+      !order.isPickup &&
+      order.status != 'canceled' &&
+      onChangeDeliveryMan != null;
 
   void _copyPhone(BuildContext context, String phone) {
     Clipboard.setData(ClipboardData(text: phone));
@@ -676,9 +688,32 @@ class OrderDeliveryManSection extends StatelessWidget {
     final deliveryMan = order.deliveryMan;
     final driverUuid = deliveryMan?.uuid?.trim();
     final canOpenDriver = driverUuid != null && driverUuid.isNotEmpty;
+    final hasDriver = deliveryMan != null;
 
     return _SectionCard(
       title: 'delivery_man'.tr(),
+      trailing: _canChange
+          ? TextButton.icon(
+              onPressed: updating ? null : onChangeDeliveryMan,
+              icon: updating
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(
+                      hasDriver
+                          ? Icons.swap_horiz_rounded
+                          : Icons.person_add_alt_1_outlined,
+                      size: 18,
+                    ),
+              label: Text(
+                hasDriver
+                    ? 'change_delivery_man'.tr()
+                    : 'assign_delivery_man'.tr(),
+              ),
+            )
+          : null,
       child: deliveryMan != null
           ? Column(
               children: [

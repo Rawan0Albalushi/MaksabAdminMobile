@@ -144,4 +144,16 @@ class OrdersRepository {
       throw Exception(response.message ?? 'Failed to update status');
     }
   }
+
+  Future<void> updateDeliveryMan(int id, int deliverymanId) async {
+    final json = await _dio.post<Map<String, dynamic>>(
+      ApiEndpoints.adminOrderDeliveryman(id),
+      data: {'deliveryman': deliverymanId},
+    );
+
+    final response = ApiResponse<dynamic>.fromJson(json.data ?? {}, null);
+    if (!response.status) {
+      throw Exception(response.message ?? 'Failed to update delivery person');
+    }
+  }
 }

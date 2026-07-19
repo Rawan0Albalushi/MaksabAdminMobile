@@ -56,6 +56,7 @@ class OrderLineItem {
 class OrderDeliveryPerson {
   const OrderDeliveryPerson({
     required this.name,
+    this.id,
     this.uuid,
     this.phone,
     this.email,
@@ -63,6 +64,7 @@ class OrderDeliveryPerson {
   });
 
   final String name;
+  final int? id;
   final String? uuid;
   final String? phone;
   final String? email;
@@ -77,9 +79,19 @@ class OrderDeliveryPerson {
     }
 
     final uuid = json['uuid']?.toString().trim();
+    final rawId = json['id'];
+    int? id;
+    if (rawId is int) {
+      id = rawId;
+    } else if (rawId is num) {
+      id = rawId.toInt();
+    } else {
+      id = int.tryParse(rawId?.toString() ?? '');
+    }
 
     return OrderDeliveryPerson(
       name: name.isEmpty ? '—' : name,
+      id: id,
       uuid: uuid != null && uuid.isNotEmpty ? uuid : null,
       phone: json['phone']?.toString(),
       email: json['email']?.toString(),
